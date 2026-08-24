@@ -37,7 +37,7 @@ After installation, enter your Proton username in the panel and select **Sign in
 protonvpn signin USERNAME
 ```
 
-The plugin never handles your Proton password. It detects installation and sign-in completion automatically; manual refresh buttons are also available.
+The plugin never handles your Proton password or 2FA code. Automatic status polling pauses while the interactive sign-in terminal is open so it cannot compete with authentication. After completing password and 2FA prompts, select **Refresh sign-in status** in the panel. Installation detection remains automatic.
 
 > [!WARNING]
 > The official Proton VPN CLI cannot run alongside the Proton VPN GUI. Headless use is also unsupported. Read [Proton's official Linux CLI guide](https://protonvpn.com/support/linux-cli) before replacing an existing GUI installation.
@@ -194,6 +194,15 @@ omarchy bar move io.github.bramvera.proton-vpn --section right
 ```bash
 omarchy plugin update io.github.bramvera.proton-vpn
 ```
+
+Updates reuse the Git remote recorded when the plugin was installed. The official install URL uses HTTPS and does not require a GitHub SSH key. If an older or manually cloned checkout reports `Host key verification failed`, restore its public HTTPS origin and retry:
+
+```bash
+git -C "$HOME/.config/omarchy/plugins/io.github.bramvera.proton-vpn" remote set-url origin https://github.com/bramvera/omarchy-proton-vpn.git
+omarchy plugin update io.github.bramvera.proton-vpn
+```
+
+If Git still attempts SSH, inspect machine-level URL rewrites with `git config --show-origin --get-regexp '^url\..*\.insteadof$'`.
 
 ## Remove
 
