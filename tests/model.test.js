@@ -62,6 +62,19 @@ test("opens interactive Proton sign-in in an Omarchy terminal", () => {
   assert.equal(model.signinPlan("omarchy", "protonvpn", "").error, "Enter your Proton username")
 })
 
+test("builds sign-out only after the VPN is disconnected", () => {
+  assert.deepEqual(model.signoutPlan("protonvpn", false), {
+    ok: true,
+    error: "",
+    command: ["protonvpn", "signout"]
+  })
+  assert.deepEqual(model.signoutPlan("protonvpn", true), {
+    ok: false,
+    error: "Disconnect before signing out",
+    command: []
+  })
+})
+
 test("parses countries while ignoring refresh chatter and table headers", () => {
   const result = model.parseCountries(`Server list is outdated, updating... This may take a moment.
 Country                           Code

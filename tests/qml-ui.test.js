@@ -35,7 +35,7 @@ test("interactive sign-in suspends automatic polling while the terminal is activ
   assert.match(automaticRefresh[1], /return false/)
   assert.match(service, /onTriggered: root\.automaticRefresh\(\)/)
 
-  const panelOpen = panel.match(/onOpenedChanged: if \(opened\) \{([\s\S]*?)\n  \}/)
+  const panelOpen = panel.match(/onOpenedChanged:\s*\{([\s\S]*?)\n  \}/)
   assert.ok(panelOpen, "Panel.qml must define its open-time refresh behavior")
   assert.match(panelOpen[1], /vpn\.automaticRefresh\(\)/)
   assert.doesNotMatch(panelOpen[1], /vpn\.refresh\(\)/)
@@ -67,6 +67,22 @@ test("interactive sign-in suspends automatic polling while the terminal is activ
     /text: vpn\.refreshing \? "Checking…" : "Refresh sign-in status"[\s\S]*?onClicked: vpn\.refreshStatus\(\)/,
     "the user must retain an explicit post-2FA status check"
   )
+})
+
+test("account sign-out is disconnected, confirmed, and returns to sign-in", () => {
+  const signOut = service.slice(service.indexOf("function signOut()"), service.indexOf("function toggle()"))
+  const requestSignOut = panel.slice(panel.indexOf("function requestSignOut()"), panel.indexOf("function selectedCountryCode()"))
+
+  assert.match(signOut, /Model\.signoutPlan\(cliCommand, connected\)/)
+  assert.match(signOut, /configListProcess\.running/)
+  assert.match(signOut, /runAction\(plan\.command, "Signing out…", "signout"\)/)
+  assert.match(service, /if \(actionMode === "signout"\) \{[\s\S]*?root\.clearConnection\(\)[\s\S]*?root\.needsLogin = true[\s\S]*?root\.lastError = ""/)
+
+  assert.match(panel, /property bool signOutArmed: false/)
+  assert.match(requestSignOut, /signOutArmed = true/)
+  assert.match(requestSignOut, /vpn\.signOut\(\)/)
+  assert.match(panel, /text: root\.signOutArmed \? "Confirm sign out" : \(vpn\.connected \? "Disconnect before signing out" : "Sign out"\)/)
+  assert.match(panel, /enabled: !vpn\.busy && !vpn\.configBusy && !vpn\.connected/)
 })
 
 test("uses the official gradient and the white Simple Icons silhouette", () => {

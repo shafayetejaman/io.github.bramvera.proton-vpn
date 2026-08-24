@@ -21,6 +21,19 @@ Panel {
   property bool settingsExpanded: false
   property bool exitIpVisible: false
   property bool exitIpCopied: false
+  property bool signOutArmed: false
+
+  function requestSignOut() {
+    if (vpn.connected || vpn.busy) return
+    if (!signOutArmed) {
+      signOutArmed = true
+      signOutConfirmTimer.restart()
+      return
+    }
+    signOutArmed = false
+    signOutConfirmTimer.stop()
+    vpn.signOut()
+  }
 
   function selectedCountryCode() {
     var options = countryBox.model || []
@@ -221,10 +234,15 @@ Panel {
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
 
-  onOpenedChanged: if (opened) {
-    vpn.automaticRefresh()
-    if (vpn.countries.length === 0) vpn.refreshLocations()
-    Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+  onOpenedChanged: {
+    if (opened) {
+      vpn.automaticRefresh()
+      if (vpn.countries.length === 0) vpn.refreshLocations()
+      Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+    } else {
+      signOutArmed = false
+      signOutConfirmTimer.stop()
+    }
   }
 
   Service {
@@ -237,6 +255,12 @@ Panel {
     function onCountriesChanged() { root.selectDefaultCountry() }
     function onCitiesChanged() { Qt.callLater(root.selectFirstFilteredCity) }
     function onConfigValuesChanged() { root.syncConfigControls() }
+    function onNeedsLoginChanged() {
+      if (!vpn.needsLogin) return
+      root.settingsExpanded = false
+      root.signOutArmed = false
+      signOutConfirmTimer.stop()
+    }
     function onExitIpChanged() {
       root.exitIpVisible = false
       root.exitIpCopied = false
@@ -263,6 +287,13 @@ Panel {
     interval: 1800
     repeat: false
     onTriggered: root.exitIpCopied = false
+  }
+
+  Timer {
+    id: signOutConfirmTimer
+    interval: 6000
+    repeat: false
+    onTriggered: root.signOutArmed = false
   }
 
   IpcHandler {
@@ -1041,6 +1072,34 @@ Panel {
                 font.pixelSize: Style.font.caption
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
+              }
+
+              PanelSeparator {
+                foreground: root.foreground
+              }
+
+              PanelSectionHeader {
+                text: "ACCOUNT"
+                foreground: root.foreground
+                fontFamily: root.fontFamily
+              }
+
+              Text {
+                width: parent.width
+                text: vpn.connected
+                  ? "Disconnect the VPN before signing out."
+                  : "Sign out to clear local Proton credentials and switch accounts."
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                wrapMode: Text.WordWrap
+              }
+
+              ActionButton {
+                width: parent.width
+                text: root.signOutArmed ? "Confirm sign out" : (vpn.connected ? "Disconnect before signing out" : "Sign out")
+                enabled: !vpn.busy && !vpn.configBusy && !vpn.connected
+                onClicked: root.requestSignOut()
               }
             }
           }

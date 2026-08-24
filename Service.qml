@@ -51,6 +51,7 @@ Item {
   property string _statusError: ""
   property string _actionOutput: ""
   property string _actionError: ""
+  property string _actionMode: ""
   property string _countriesOutput: ""
   property string _countriesError: ""
   property string _citiesOutput: ""
@@ -369,14 +370,26 @@ Item {
     runAction([cliCommand, "disconnect"], "Disconnecting…")
   }
 
+  function signOut() {
+    if (!installed || needsLogin || statusProcess.running || actionProcess.running || configListProcess.running || configActionProcess.running || onboardingBusy) return false
+    var plan = Model.signoutPlan(cliCommand, connected)
+    if (!plan.ok) {
+      lastError = plan.error
+      return false
+    }
+    runAction(plan.command, "Signing out…", "signout")
+    return true
+  }
+
   function toggle() {
     if (connected) disconnect()
     else connect("fastest", "", "none")
   }
 
-  function runAction(command, label) {
+  function runAction(command, label, mode) {
     _actionOutput = ""
     _actionError = ""
+    _actionMode = String(mode || "")
     lastError = ""
     actionStatus = label
     actionProcess.command = command
@@ -649,9 +662,23 @@ Item {
       actionWatchdog.stop()
       var stdout = String(actionStdout.text || root._actionOutput || "")
       var stderr = String(actionStderr.text || root._actionError || "")
+      var actionMode = root._actionMode
+      root._actionMode = ""
       root.actionStatus = ""
       if (exitCode === 0) {
         root.lastError = ""
+        if (actionMode === "signout") {
+          root.finishOnboardingPolling()
+          root.clearConnection()
+          root.needsLogin = true
+          root.statusText = "Needs sign-in"
+          root.configValues = ({})
+          root.configLoaded = false
+          root.configError = ""
+          root.onboardingStatus = "Signed out. Sign in with another account."
+          root.onboardingError = ""
+          return
+        }
         delayedRefresh.restart()
       } else {
         var failure = Model.classifyFailure(stderr || stdout)

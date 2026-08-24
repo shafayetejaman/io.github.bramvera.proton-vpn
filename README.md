@@ -103,6 +103,7 @@ External network services:
 - Theme-native Proton VPN icon, typography, colors, switches, and buttons
 - Automatic CLI detection with a guided Omarchy package installer
 - Guided terminal sign-in without handling the Proton password
+- Confirmed account sign-out for switching Proton accounts after disconnecting
 - Configurable CLI path, default country, and refresh interval
 - Persistent favorites and custom DNS input through Omarchy widget settings
 - Argument-array process execution without interpolating user values into a shell command

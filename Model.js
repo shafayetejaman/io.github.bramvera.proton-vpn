@@ -75,6 +75,15 @@ function signinPlan(omarchyCommand, cliCommand, username) {
   }
 }
 
+function signoutPlan(cliCommand, connected) {
+  if (connected) return { ok: false, error: "Disconnect before signing out", command: [] }
+  return {
+    ok: true,
+    error: "",
+    command: [clean(cliCommand) || "protonvpn", "signout"]
+  }
+}
+
 function parseCountries(raw) {
   var lines = String(raw || "").split(/\r?\n/)
   var countries = []
@@ -331,6 +340,7 @@ if (typeof module !== "undefined") {
     classifyFailure: classifyFailure,
     installCliPlan: installCliPlan,
     signinPlan: signinPlan,
+    signoutPlan: signoutPlan,
     parseCountries: parseCountries,
     parseCities: parseCities,
     connectPlan: connectPlan,
