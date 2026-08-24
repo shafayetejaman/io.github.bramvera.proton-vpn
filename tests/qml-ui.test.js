@@ -24,6 +24,44 @@ test("background polling does not pulse the VPN indicator", () => {
   assert.equal(iconBindings.length, 2, "both VPN indicators must use the stable indicator busy state")
 })
 
+test("interactive sign-in suspends automatic polling until manual refresh", () => {
+  const automaticRefresh = service.match(/function automaticRefresh\(\) \{([\s\S]*?)\n  \}/)
+  const signInExit = service.match(/if \(mode === "signin"\) \{([\s\S]*?)\n      \}/)
+  const signIn = service.slice(service.indexOf("function signIn(username)"), service.indexOf("function refreshStatus()"))
+
+  assert.ok(automaticRefresh, "Service.qml must separate automatic polling from explicit refreshes")
+  assert.match(service, /readonly property bool signInPending:\s*_onboardingMode === "signin"/)
+  assert.match(automaticRefresh[1], /root\.signInPending/)
+  assert.match(automaticRefresh[1], /return false/)
+  assert.match(service, /onTriggered: root\.automaticRefresh\(\)/)
+
+  const panelOpen = panel.match(/onOpenedChanged: if \(opened\) \{([\s\S]*?)\n  \}/)
+  assert.ok(panelOpen, "Panel.qml must define its open-time refresh behavior")
+  assert.match(panelOpen[1], /vpn\.automaticRefresh\(\)/)
+  assert.doesNotMatch(panelOpen[1], /vpn\.refresh\(\)/)
+
+  const refreshLocations = service.match(/function refreshLocations\(\) \{([\s\S]*?)\n  \}/)
+  assert.ok(refreshLocations, "Service.qml must define location refresh behavior")
+  assert.match(refreshLocations[1], /root\.signInPending/)
+
+  assert.match(signIn, /onboardingPollTimer\.stop\(\)/)
+  assert.ok(
+    signIn.indexOf('_onboardingMode = "signin"') < signIn.indexOf("onboardingProcess.running = true"),
+    "sign-in mode must block polling before the terminal launcher starts"
+  )
+
+  assert.ok(signInExit, "terminal launch completion must handle interactive sign-in separately")
+  assert.match(signInExit[1], /2FA/)
+  assert.match(signInExit[1], /return/)
+  assert.doesNotMatch(signInExit[1], /beginOnboardingPolling|refresh/)
+
+  assert.match(
+    panel,
+    /text: vpn\.refreshing \? "Checking…" : "Refresh sign-in status"[\s\S]*?onClicked: vpn\.refreshStatus\(\)/,
+    "the user must retain an explicit post-2FA status check"
+  )
+})
+
 test("uses the official gradient and the white Simple Icons silhouette", () => {
   const asset = fs.readFileSync(path.join(root, "assets", "VPN-logomark-noborder.svg"))
   const disconnectedAsset = fs.readFileSync(path.join(root, "assets", "proton-vpn-simple-white.svg"), "utf8")

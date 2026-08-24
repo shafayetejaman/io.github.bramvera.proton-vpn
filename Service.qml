@@ -45,6 +45,7 @@ Item {
   readonly property bool openingReport: _openReportAfterLookup && reportBusy
   readonly property bool dnsCompatibilityBusy: dnsProbeProcess.running || dnsApplyProcess.running
   readonly property bool onboardingBusy: onboardingProcess.running
+  readonly property bool signInPending: _onboardingMode === "signin"
 
   property string _statusOutput: ""
   property string _statusError: ""
@@ -229,6 +230,12 @@ Item {
     whichProcess.running = true
   }
 
+  function automaticRefresh() {
+    if (root.signInPending) return false
+    root.refresh()
+    return true
+  }
+
   function beginOnboardingPolling(mode) {
     _onboardingMode = mode
     _onboardingPollCount = 0
@@ -270,10 +277,12 @@ Item {
     onboardingError = ""
     onboardingStatus = "Opening Proton sign-in in a terminal…"
     lastError = ""
+    onboardingPollTimer.stop()
+    _onboardingPollCount = 0
+    _onboardingMode = "signin"
     onboardingProcess.command = plan.command
     onboardingProcess.running = true
     onboardingWatchdog.restart()
-    _onboardingMode = "signin"
     return true
   }
 
@@ -288,7 +297,7 @@ Item {
   }
 
   function refreshLocations() {
-    if (!installed || countriesProcess.running) return
+    if (!installed || root.signInPending || countriesProcess.running) return
     _countriesOutput = ""
     _countriesError = ""
     locationError = ""
@@ -299,7 +308,7 @@ Item {
 
   function loadCities(countryCode) {
     var code = String(countryCode || "").trim().toUpperCase()
-    if (!installed || code === "") return
+    if (!installed || root.signInPending || code === "") return
     if (citiesProcess.running) {
       _pendingCitiesCountryCode = code
       return
@@ -318,7 +327,7 @@ Item {
   }
 
   function refreshConfig() {
-    if (!installed || configListProcess.running || configActionProcess.running) return
+    if (!installed || root.signInPending || configListProcess.running || configActionProcess.running) return
     _configOutput = ""
     _configErrorOutput = ""
     configError = ""
@@ -382,7 +391,7 @@ Item {
     repeat: true
     running: true
     triggeredOnStart: true
-    onTriggered: root.refresh()
+    onTriggered: root.automaticRefresh()
   }
 
   Timer {
@@ -402,7 +411,7 @@ Item {
         root.finishOnboardingPolling()
         root.onboardingStatus = "Use Refresh after completing the terminal step."
       } else {
-        root.refresh()
+        root.automaticRefresh()
       }
     }
   }
@@ -559,11 +568,14 @@ Item {
       }
 
       var mode = root._onboardingMode
-      root.onboardingStatus = mode === "install"
-        ? "Finish installation in the terminal; detection is automatic."
-        : "Finish sign-in in the terminal; detection is automatic."
+      if (mode === "signin") {
+        root.onboardingStatus = "Finish sign-in and 2FA in the terminal, then select Refresh sign-in status."
+        return
+      }
+
+      root.onboardingStatus = "Finish installation in the terminal; detection is automatic."
       root.beginOnboardingPolling(mode)
-      root.refresh()
+      root.automaticRefresh()
     }
   }
 

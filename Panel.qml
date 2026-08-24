@@ -222,7 +222,7 @@ Panel {
   implicitHeight: button.implicitHeight
 
   onOpenedChanged: if (opened) {
-    vpn.refresh()
+    vpn.automaticRefresh()
     if (vpn.countries.length === 0) vpn.refreshLocations()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
   }
