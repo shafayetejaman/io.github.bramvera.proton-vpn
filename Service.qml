@@ -555,7 +555,8 @@ Item {
 
       var mode = root._onboardingMode
       if (mode === "signin") {
-        root.onboardingStatus = "Finish sign-in and 2FA in the terminal, then select Refresh sign-in status."
+        root.onboardingStatus = "Checking sign-in status…"
+        root.refreshStatus()
         return
       }
 

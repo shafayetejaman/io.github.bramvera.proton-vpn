@@ -24,7 +24,7 @@ test("background polling does not pulse the VPN indicator", () => {
   assert.equal(iconBindings.length, 2, "both VPN indicators must use the stable indicator busy state")
 })
 
-test("interactive sign-in suspends automatic polling until manual refresh", () => {
+test("interactive sign-in suspends automatic polling while the terminal is active", () => {
   const automaticRefresh = service.match(/function automaticRefresh\(\) \{([\s\S]*?)\n  \}/)
   const signInExit = service.match(/if \(mode === "signin"\) \{([\s\S]*?)\n      \}/)
   const signIn = service.slice(service.indexOf("function signIn(username)"), service.indexOf("function refreshStatus()"))
@@ -58,9 +58,9 @@ test("interactive sign-in suspends automatic polling until manual refresh", () =
   )
 
   assert.ok(signInExit, "terminal launch completion must handle interactive sign-in separately")
-  assert.match(signInExit[1], /2FA/)
+  assert.match(signInExit[1], /root\.refreshStatus\(\)/)
   assert.match(signInExit[1], /return/)
-  assert.doesNotMatch(signInExit[1], /beginOnboardingPolling|refresh/)
+  assert.doesNotMatch(signInExit[1], /beginOnboardingPolling/)
 
   assert.match(
     panel,
