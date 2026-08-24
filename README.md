@@ -14,10 +14,11 @@ Connect, disconnect, choose locations, manage VPN settings, save favorite target
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/bramvera/omarchy-proton-vpn.git --enable
+omarchy plugin add https://github.com/bramvera/omarchy-proton-vpn.git --enable --yes
+omarchy bar move io.github.bramvera.proton-vpn --section right
 ```
 
-The widget appears in the right section of the bar by default.
+This installs and enables the plugin non-interactively, then explicitly places its widget in the right section of the bar. The manifest also defaults to the right section.
 
 ## First run
 
@@ -183,11 +184,7 @@ Omarchy's widget settings expose:
 - Default country code
 - Status refresh interval
 
-You can move the widget with Omarchy's normal bar command:
-
-```bash
-omarchy bar move io.github.bramvera.proton-vpn --section right
-```
+To reposition the widget later, rerun the `omarchy bar move` command from the installation steps with `left`, `center`, or `right`.
 
 ## Update
 
