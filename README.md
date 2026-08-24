@@ -32,13 +32,46 @@ omarchy install app 'Proton VPN CLI' proton-vpn-cli
 
 The terminal owns the `sudo` prompt. The plugin never reads or stores your system password.
 
-After installation, enter your Proton username in the panel and select **Sign in with Proton**. Authentication runs interactively in a terminal:
+After installation, authenticate through either the plugin UI or the official CLI. Both routes use the same local Proton VPN CLI session.
+
+## Account sign-in and sign-out
+
+### From the plugin UI
+
+To sign in:
+
+1. Open the Proton VPN panel.
+2. Enter your Proton username and select **Sign in with Proton**.
+3. Complete the password and 2FA prompts in the terminal opened by Omarchy.
+4. Wait for the terminal to close. The plugin checks the new session automatically; **Refresh sign-in status** remains available as a manual fallback.
+
+The plugin pauses its automatic status polling while this terminal is open and does not impose a timeout. Your password and 2FA code are entered directly into the official CLI—the plugin never reads, receives, or stores them.
+
+To sign out or switch accounts:
+
+1. Disconnect the VPN. Account sign-out is disabled while connected.
+2. Open **VPN settings**, scroll to **ACCOUNT**, and select **Sign out**.
+3. Select **Confirm sign out** within six seconds.
+4. The plugin runs `protonvpn signout`, clears its displayed connection and account-specific settings state, and returns to the sign-in form.
+
+Favorite server targets remain available because they contain no Proton credentials.
+
+### Directly from a terminal
+
+The plugin UI is optional. To sign in without it, run:
 
 ```bash
 protonvpn signin USERNAME
 ```
 
-The plugin never handles your Proton password or 2FA code. Automatic status polling pauses while the interactive sign-in terminal is open so it cannot compete with authentication, and the plugin does not impose a timeout on that terminal. After the password and 2FA prompts complete and the terminal closes, the plugin checks your sign-in status automatically. **Refresh sign-in status** remains available as a manual fallback. Installation detection remains automatic.
+Enter your password and 2FA code when the CLI prompts for them. To sign out directly, disconnect first and then clear the local Proton credentials:
+
+```bash
+protonvpn disconnect
+protonvpn signout
+```
+
+After a direct terminal sign-in or sign-out, middle-click the bar icon or reopen the panel and refresh if you want the UI to synchronize immediately. Otherwise, the next automatic status check will update it.
 
 > [!WARNING]
 > The official Proton VPN CLI cannot run alongside the Proton VPN GUI. Headless use is also unsupported. Read [Proton's official Linux CLI guide](https://protonvpn.com/support/linux-cli) before replacing an existing GUI installation.
