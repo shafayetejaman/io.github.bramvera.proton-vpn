@@ -192,14 +192,16 @@ omarchy bar move io.github.bramvera.proton-vpn --section right
 ## Update
 
 ```bash
-omarchy plugin update io.github.bramvera.proton-vpn
+omarchy plugin update io.github.bramvera.proton-vpn --yes
 ```
+
+The `--yes` flag applies the update non-interactively. Omit it when you want Omarchy to show the complete plugin diff and wait for confirmation before updating.
 
 Updates reuse the Git remote recorded when the plugin was installed. The official install URL uses HTTPS and does not require a GitHub SSH key. If an older or manually cloned checkout reports `Host key verification failed`, restore its public HTTPS origin and retry:
 
 ```bash
 git -C "$HOME/.config/omarchy/plugins/io.github.bramvera.proton-vpn" remote set-url origin https://github.com/bramvera/omarchy-proton-vpn.git
-omarchy plugin update io.github.bramvera.proton-vpn
+omarchy plugin update io.github.bramvera.proton-vpn --yes
 ```
 
 If Git still attempts SSH, inspect machine-level URL rewrites with `git config --show-origin --get-regexp '^url\..*\.insteadof$'`.
