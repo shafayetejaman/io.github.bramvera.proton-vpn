@@ -45,9 +45,16 @@ test("interactive sign-in suspends automatic polling until manual refresh", () =
   assert.match(refreshLocations[1], /root\.signInPending/)
 
   assert.match(signIn, /onboardingPollTimer\.stop\(\)/)
+  assert.match(signIn, /Automatic polling is paused/)
   assert.ok(
     signIn.indexOf('_onboardingMode = "signin"') < signIn.indexOf("onboardingProcess.running = true"),
     "sign-in mode must block polling before the terminal launcher starts"
+  )
+  assert.doesNotMatch(service, /id: onboardingWatchdog/)
+  assert.doesNotMatch(
+    service,
+    /onboardingProcess\.running\s*=\s*false/,
+    "no timeout may terminate the interactive password or 2FA terminal"
   )
 
   assert.ok(signInExit, "terminal launch completion must handle interactive sign-in separately")

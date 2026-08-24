@@ -38,7 +38,7 @@ After installation, enter your Proton username in the panel and select **Sign in
 protonvpn signin USERNAME
 ```
 
-The plugin never handles your Proton password or 2FA code. Automatic status polling pauses while the interactive sign-in terminal is open so it cannot compete with authentication. After completing password and 2FA prompts, select **Refresh sign-in status** in the panel. Installation detection remains automatic.
+The plugin never handles your Proton password or 2FA code. Automatic status polling pauses while the interactive sign-in terminal is open so it cannot compete with authentication, and the plugin does not impose a timeout on that terminal. After completing password and 2FA prompts, select **Refresh sign-in status** in the panel. Installation detection remains automatic.
 
 > [!WARNING]
 > The official Proton VPN CLI cannot run alongside the Proton VPN GUI. Headless use is also unsupported. Read [Proton's official Linux CLI guide](https://protonvpn.com/support/linux-cli) before replacing an existing GUI installation.

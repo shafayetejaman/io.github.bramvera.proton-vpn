@@ -413,7 +413,7 @@ Panel {
 
             ActionButton {
               width: parent.width
-              text: vpn.onboardingBusy ? "Opening installer…" : "Install Proton VPN CLI"
+              text: vpn.onboardingBusy ? "Installer terminal active…" : "Install Proton VPN CLI"
               enabled: !vpn.onboardingBusy
               onClicked: vpn.installCli()
             }
@@ -464,7 +464,7 @@ Panel {
 
             ActionButton {
               width: parent.width
-              text: vpn.onboardingBusy ? "Opening sign-in…" : "Sign in with Proton"
+              text: vpn.onboardingBusy ? "Sign-in terminal active…" : "Sign in with Proton"
               enabled: !vpn.onboardingBusy && protonUsernameField.text.trim() !== ""
               onClicked: vpn.signIn(protonUsernameField.text)
             }

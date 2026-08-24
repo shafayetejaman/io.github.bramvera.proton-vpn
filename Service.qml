@@ -261,7 +261,6 @@ Item {
     lastError = ""
     onboardingProcess.command = plan.command
     onboardingProcess.running = true
-    onboardingWatchdog.restart()
     _onboardingMode = "install"
     return true
   }
@@ -275,14 +274,13 @@ Item {
     }
     _onboardingErrorOutput = ""
     onboardingError = ""
-    onboardingStatus = "Opening Proton sign-in in a terminal…"
+    onboardingStatus = "Complete password and 2FA in the terminal. Automatic polling is paused."
     lastError = ""
     onboardingPollTimer.stop()
     _onboardingPollCount = 0
     _onboardingMode = "signin"
     onboardingProcess.command = plan.command
     onboardingProcess.running = true
-    onboardingWatchdog.restart()
     return true
   }
 
@@ -417,17 +415,6 @@ Item {
   }
 
   Timer {
-    id: onboardingWatchdog
-    interval: 15000
-    repeat: false
-    onTriggered: {
-      if (onboardingProcess.running) onboardingProcess.running = false
-      root.onboardingError = "Could not open the Omarchy terminal"
-      root.finishOnboardingPolling()
-    }
-  }
-
-  Timer {
     id: delayedDnsCompatibility
     interval: 1000
     repeat: false
@@ -558,7 +545,6 @@ Item {
       onStreamFinished: root._onboardingErrorOutput = text
     }
     onExited: function(exitCode) {
-      onboardingWatchdog.stop()
       var stderr = String(onboardingStderr.text || root._onboardingErrorOutput || "")
       if (exitCode !== 0) {
         root.onboardingStatus = ""
