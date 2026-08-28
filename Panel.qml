@@ -724,7 +724,7 @@ Panel {
               width: parent.width
               spacing: Style.space(8)
 
-              ComboBox {
+              ThemedCombo {
                 id: modeBox
                 Layout.fillWidth: true
                 model: ["Fastest", "Random", "Country", "City", "Server"]
@@ -734,7 +734,7 @@ Panel {
                 }
               }
 
-              ComboBox {
+              ThemedCombo {
                 id: featureBox
                 Layout.fillWidth: true
                 model: ["None", "P2P", "Secure Core", "Tor"]
@@ -761,7 +761,7 @@ Panel {
               }
             }
 
-            ComboBox {
+            ThemedCombo {
               id: countryBox
               visible: modeBox.currentText === "Country" || modeBox.currentText === "City"
               width: parent.width
@@ -793,7 +793,7 @@ Panel {
               }
             }
 
-            ComboBox {
+            ThemedCombo {
               id: cityBox
               visible: modeBox.currentText === "City"
               width: parent.width
@@ -963,7 +963,7 @@ Panel {
                   wrapMode: Text.WordWrap
                 }
 
-                ComboBox {
+                ThemedCombo {
                   id: netshieldBox
                   width: parent.width
                   model: ["off", "malware-only", "malware-ads-trackers"]
