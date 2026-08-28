@@ -48,7 +48,6 @@ ComboBox {
   }
 
   delegate: Rectangle {
-    required property var model
     required property int index
 
     width: control.width
@@ -64,7 +63,7 @@ ComboBox {
       anchors.verticalCenter: parent.verticalCenter
       anchors.leftMargin: Style.spacing.controlPaddingX
       anchors.rightMargin: Style.spacing.controlPaddingX
-      text: control.textRole ? String(model[control.textRole]) : String(model)
+      text: control.textRole ? modelData[control.textRole] : modelData
       color: control.highlightedIndex === index
         ? Style.hoverStateColor(control.foreground, control.accent)
         : control.foreground
