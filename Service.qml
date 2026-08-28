@@ -34,7 +34,7 @@ Item {
   property string onboardingStatus: ""
   property string onboardingError: ""
 
-  readonly property string cliCommand: String(setting("cliCommand", "protonvpn") || "protonvpn").trim()
+  readonly property string cliCommand: sanitizeCliCommand(setting("cliCommand", "protonvpn"))
   readonly property int refreshIntervalSec: intSetting("refreshIntervalSec", 30, 5, 3600)
   readonly property bool busy: whichProcess.running || statusProcess.running || actionProcess.running || configActionProcess.running || dnsCompatibilityBusy || onboardingBusy
   readonly property bool indicatorBusy: actionProcess.running || onboardingBusy
@@ -87,6 +87,23 @@ Item {
     var value = parseInt(String(setting(name, fallback)), 10)
     if (!isFinite(value)) value = fallback
     return Math.max(min, Math.min(max, value))
+  }
+
+  function sanitizeCliCommand(value) {
+    var v = String(value || "protonvpn").trim()
+    if (v === "") return "protonvpn"
+    if (v.indexOf("/") >= 0) {
+      var allowed = ["/usr/bin/", "/usr/local/bin/", "/bin/"]
+      for (var i = 0; i < allowed.length; i++) {
+        if (v.indexOf(allowed[i]) === 0 && v.length > allowed[i].length) {
+          var rest = v.slice(allowed[i].length)
+          if (/^[A-Za-z0-9._+-]+$/.test(rest)) return v
+        }
+      }
+      return "protonvpn"
+    }
+    if (/^[A-Za-z0-9._+-]+$/.test(v)) return v
+    return "protonvpn"
   }
 
   function clearConnection() {

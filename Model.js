@@ -2,6 +2,10 @@ function clean(value) {
   return String(value === undefined || value === null ? "" : value).trim()
 }
 
+function safeArg(value) {
+  return !/[;&|$`'\"()<>\\\r\n\t]/.test(clean(value))
+}
+
 function parseStatus(raw) {
   var text = String(raw || "")
   var connected = /^Status:\s*Connected\s*$/mi.test(text)
@@ -64,6 +68,9 @@ function installCliPlan(omarchyCommand) {
 function signinPlan(omarchyCommand, cliCommand, username) {
   var account = clean(username)
   if (!account) return { ok: false, error: "Enter your Proton username", command: [] }
+  if (!/^[A-Za-z0-9._@-]+$/.test(account)) {
+    return { ok: false, error: "Username contains invalid characters", command: [] }
+  }
   return {
     ok: true,
     error: "",
@@ -137,12 +144,15 @@ function connectPlan(cliCommand, mode, target, feature) {
   if (selectedMode === "random") command.push("--random")
   else if (selectedMode === "country") {
     if (!selectedTarget) return { ok: false, error: "Enter a country code or name", command: [] }
+    if (!safeArg(selectedTarget)) return { ok: false, error: "Country contains invalid characters", command: [] }
     command.push("--country", selectedTarget)
   } else if (selectedMode === "city") {
     if (!selectedTarget) return { ok: false, error: "Enter a city", command: [] }
+    if (!safeArg(selectedTarget)) return { ok: false, error: "City contains invalid characters", command: [] }
     command.push("--city", selectedTarget)
   } else if (selectedMode === "server") {
     if (!selectedTarget) return { ok: false, error: "Enter a server ID", command: [] }
+    if (!safeArg(selectedTarget)) return { ok: false, error: "Server ID contains invalid characters", command: [] }
     command.push(selectedTarget)
   } else if (selectedMode !== "fastest") {
     return { ok: false, error: "Unknown connection mode", command: [] }
@@ -225,6 +235,10 @@ function configPlan(cliCommand, setting, value, dnsServers) {
   if (key === "custom-dns" && selected === "on") {
     var dns = clean(dnsServers)
     if (!dns) return { ok: false, error: "Enter at least one DNS server", command: [] }
+    var entries = dns.split(",")
+    for (var i = 0; i < entries.length; i++) {
+      if (!safeArg(entries[i])) return { ok: false, error: "DNS server contains invalid characters", command: [] }
+    }
     command.push("--dns", dns)
   }
   return { ok: true, error: "", command: command }

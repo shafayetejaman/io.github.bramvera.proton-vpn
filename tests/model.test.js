@@ -108,13 +108,14 @@ Surabaya
 
 test("builds argument arrays without shell interpolation", () => {
   assert.deepEqual(
-    model.connectPlan("protonvpn", "country", "United States; notify-send nope", "p2p"),
+    model.connectPlan("protonvpn", "country", "United States", "p2p"),
     {
       ok: true,
       error: "",
-      command: ["protonvpn", "connect", "--country", "United States; notify-send nope", "--p2p"]
+      command: ["protonvpn", "connect", "--country", "United States", "--p2p"]
     }
   )
+  assert.equal(model.connectPlan("protonvpn", "country", "United States; notify-send nope", "p2p").ok, false)
 })
 
 test("supports every official quick-connect selector", () => {
@@ -178,11 +179,12 @@ test("builds validated config commands as argument arrays", () => {
     error: "",
     command: ["protonvpn", "config", "set", "kill-switch", "standard"]
   })
-  assert.deepEqual(model.configPlan("protonvpn", "custom-dns", "on", "1.1.1.1,8.8.8.8; nope"), {
+  assert.deepEqual(model.configPlan("protonvpn", "custom-dns", "on", "1.1.1.1,8.8.8.8"), {
     ok: true,
     error: "",
-    command: ["protonvpn", "config", "set", "custom-dns", "on", "--dns", "1.1.1.1,8.8.8.8; nope"]
+    command: ["protonvpn", "config", "set", "custom-dns", "on", "--dns", "1.1.1.1,8.8.8.8"]
   })
+  assert.equal(model.configPlan("protonvpn", "custom-dns", "on", "1.1.1.1,8.8.8.8; nope").ok, false)
 })
 
 test("rejects unsupported settings and custom DNS without servers", () => {
