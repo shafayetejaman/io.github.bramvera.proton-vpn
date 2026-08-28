@@ -63,7 +63,9 @@ ComboBox {
       anchors.verticalCenter: parent.verticalCenter
       anchors.leftMargin: Style.spacing.controlPaddingX
       anchors.rightMargin: Style.spacing.controlPaddingX
-      text: control.textRole ? modelData[control.textRole] : modelData
+      text: control.textRole
+        ? (Array.isArray(control.model) ? model[control.textRole] : modelData[control.textRole])
+        : modelData
       color: control.highlightedIndex === index
         ? Style.hoverStateColor(control.foreground, control.accent)
         : control.foreground
