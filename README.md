@@ -14,7 +14,7 @@ Connect, disconnect, choose locations, manage VPN settings, save favorite target
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/bramvera/omarchy-proton-vpn.git --enable --yes
+omarchy plugin add https://github.com/shafayetejaman/io.github.bramvera.proton-vpn.git --enable --yes
 omarchy bar move io.github.bramvera.proton-vpn --section right
 ```
 
