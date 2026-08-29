@@ -8,6 +8,7 @@ Item {
 
   property var settings: ({})
   property bool installed: false
+  property double lastWhichCheckAt: 0
   property bool connected: false
   property bool needsLogin: false
   property bool refreshing: false
@@ -250,6 +251,14 @@ Item {
 
   function automaticRefresh() {
     if (root.signInPending) return false
+    // Back off the persistent check when the CLI is simply absent — except
+    // while onboarding is mid-flight, where the 3 s poll IS the mechanism
+    // that notices the installer finishing.
+    if (!root.installed && !root._onboardingMode) {
+      var now = Date.now()
+      if (now - root.lastWhichCheckAt < 300000) return true
+      root.lastWhichCheckAt = now
+    }
     root.refresh()
     return true
   }
@@ -415,7 +424,9 @@ Item {
   }
 
   Timer {
-    interval: root.refreshIntervalSec * 1000
+    // Floor the cadence at 30 s: this spawns a full Python CLI, and a small
+    // misconfigured interval would otherwise burn a process every few seconds.
+    interval: Math.max(30, root.refreshIntervalSec) * 1000
     repeat: true
     running: true
     triggeredOnStart: true
