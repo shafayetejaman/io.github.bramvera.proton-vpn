@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, "..")
 const panel = fs.readFileSync(path.join(root, "Panel.qml"), "utf8")
 const service = fs.readFileSync(path.join(root, "Service.qml"), "utf8")
 const icon = fs.readFileSync(path.join(root, "ProtonVpnIcon.qml"), "utf8")
+const combo = fs.readFileSync(path.join(root, "ThemedCombo.qml"), "utf8")
 
 test("background polling does not pulse the VPN indicator", () => {
   const indicatorBusy = service.match(/readonly property bool indicatorBusy:\s*([^\n]+)/)
@@ -83,6 +84,69 @@ test("account sign-out is disconnected, confirmed, and returns to sign-in", () =
   assert.match(requestSignOut, /vpn\.signOut\(\)/)
   assert.match(panel, /text: root\.signOutArmed \? "Confirm sign out" : \(vpn\.connected \? "Disconnect before signing out" : "Sign out"\)/)
   assert.match(panel, /enabled: !vpn\.busy && !vpn\.configBusy && !vpn\.connected/)
+})
+
+test("themed dropdown selection bar binds to live theme colors", () => {
+  assert.match(combo, /popup:\s*Popup \{/)
+  assert.match(combo, /delegate:\s*ItemDelegate \{/)
+  assert.match(
+    combo,
+    /color: \(parent\.highlighted \|\| parent\.hovered\)\s*\n\s*\? Style\.hoverFillFor\(control\.foreground, control\.accent\)/,
+    "the selection bar must use the kit accent-based fill so it re-renders on theme swap"
+  )
+  assert.match(
+    combo,
+    /Style\.hoverStateColor\(control\.foreground, control\.accent\)/,
+    "the highlighted row text color must follow the theme"
+  )
+  assert.match(
+    combo,
+    /onClicked: \{\s*\n\s*control\.currentIndex = index\s*\n\s*control\.activated\(index\)\s*\n\s*control\.popup\.close\(\)/,
+    "the delegate must keep QQC2 click-to-select wiring"
+  )
+  assert.match(combo, /function rowLabel\(index\)/)
+  assert.match(
+    combo,
+    /control\.model\[index\]/,
+    "row labels must resolve from the ComboBox model by index so string and role-based models both render"
+  )
+  assert.match(combo, /ScrollIndicator\.vertical/)
+  assert.match(combo, /borderSpec: control\.popupBorderSpec/)
+})
+
+test("connect/disconnect disables and labels the power switch and action buttons", () => {
+  const actionBusy = service.match(/readonly property bool actionBusy:\s*([^\n]+)/)
+  assert.ok(actionBusy, "Service.qml must expose an action-specific busy state")
+  assert.match(actionBusy[1], /actionProcess\.running/)
+  assert.doesNotMatch(
+    actionBusy[1],
+    /whichProcess|statusProcess|configActionProcess|dnsCompatibilityBusy/,
+    "background polling, config, and DNS work must not count as a connect/disconnect action"
+  )
+  assert.match(service, /readonly property string actionLabel:\s*actionProcess\.running \? actionStatus : ""/)
+
+  const power = panel.slice(panel.indexOf("id: powerSwitch"), panel.indexOf("onToggled: vpn.toggle()") + 1000)
+  assert.match(power, /opacity: vpn\.actionBusy \? 0\.5 : 1\.0/, "the connect toggle must gray out while an action runs")
+  assert.match(
+    power,
+    /text: vpn\.actionBusy\s*\n\s*\? vpn\.actionLabel\s*\n\s*: \(vpn\.connected \? "Disconnect Proton VPN" : "Quick connect"\)/,
+    "the power switch tooltip must read Connecting/Disconnecting while busy"
+  )
+
+  assert.match(
+    panel,
+    /text: vpn\.actionBusy\s*\n\s*\? vpn\.actionLabel\s*\n\s*: \(modeBox\.currentText === "Server"/,
+    "the main connect button must show the connecting/disconnecting status while busy"
+  )
+
+  const dropdowns = ["modeBox", "featureBox", "countryBox", "cityBox"]
+  for (const id of dropdowns) {
+    assert.match(
+      panel,
+      new RegExp("id: " + id + "[\\s\\S]*?opacity: vpn\\.actionBusy \\? 0\\.5 : 1\\.0"),
+      id + " must gray out while a connect/disconnect action runs"
+    )
+  }
 })
 
 test("uses the official gradient and the white Simple Icons silhouette", () => {

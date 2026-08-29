@@ -399,12 +399,15 @@ Panel {
                   visible: vpn.installed && !vpn.needsLogin
                   checked: vpn.connected
                   busy: vpn.busy
+                  opacity: vpn.actionBusy ? 0.5 : 1.0
                   foreground: hero.foreground
                   onToggled: vpn.toggle()
 
                   PanelToolTip {
                     visible: powerSwitch.containsMouse
-                    text: vpn.connected ? "Disconnect Proton VPN" : "Quick connect"
+                    text: vpn.actionBusy
+                      ? vpn.actionLabel
+                      : (vpn.connected ? "Disconnect Proton VPN" : "Quick connect")
                     fontFamily: hero.fontFamily
                   }
                 }
@@ -729,6 +732,8 @@ Panel {
                 Layout.fillWidth: true
                 model: ["Fastest", "Random", "Country", "City", "Server"]
                 font.family: root.fontFamily
+                enabled: !vpn.actionBusy
+                opacity: vpn.actionBusy ? 0.5 : 1.0
                 onCurrentIndexChanged: {
                   if (currentText === "City") vpn.loadCities(root.selectedCountryCode())
                 }
@@ -739,6 +744,8 @@ Panel {
                 Layout.fillWidth: true
                 model: ["None", "P2P", "Secure Core", "Tor"]
                 font.family: root.fontFamily
+                enabled: !vpn.actionBusy
+                opacity: vpn.actionBusy ? 0.5 : 1.0
               }
             }
 
@@ -769,7 +776,8 @@ Panel {
               textRole: "name"
               valueRole: "code"
               font.family: root.fontFamily
-              enabled: !vpn.locationsBusy && vpn.countries.length > 0
+              enabled: !vpn.actionBusy && !vpn.locationsBusy && vpn.countries.length > 0
+              opacity: vpn.actionBusy ? 0.5 : 1.0
               displayText: vpn.locationsBusy && vpn.countries.length === 0 ? "Loading countries…" : currentText
               onCurrentIndexChanged: {
                 if (modeBox.currentText === "City") vpn.loadCities(root.selectedCountryCode())
@@ -801,7 +809,8 @@ Panel {
               textRole: "name"
               valueRole: "name"
               font.family: root.fontFamily
-              enabled: !vpn.locationsBusy && vpn.cities.length > 0
+              enabled: !vpn.actionBusy && !vpn.locationsBusy && vpn.cities.length > 0
+              opacity: vpn.actionBusy ? 0.5 : 1.0
               displayText: vpn.locationsBusy
                 ? "Loading cities…"
                 : (currentText || (count > 0 ? "Choose a city" : (citySearch.text.trim() !== "" ? "No matching cities" : "No cities available")))
@@ -872,9 +881,11 @@ Panel {
 
               ActionButton {
                 Layout.fillWidth: true
-                text: modeBox.currentText === "Server"
-                  ? (vpn.connected ? "Switch server" : "Connect to server")
-                  : (vpn.connected ? "Connect elsewhere" : "Connect")
+                text: vpn.actionBusy
+                  ? vpn.actionLabel
+                  : (modeBox.currentText === "Server"
+                      ? (vpn.connected ? "Switch server" : "Connect to server")
+                      : (vpn.connected ? "Connect elsewhere" : "Connect"))
                 enabled: !vpn.busy
                 onClicked: root.submitConnection()
               }
